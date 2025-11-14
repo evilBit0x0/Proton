@@ -2,7 +2,6 @@ name: Release on Tag
 
 on:
   workflow_dispatch:
-  
   push:
     tags:
       - "proton_*"
@@ -13,19 +12,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code (include submodules)
+      - name: Checkout repo with submodules
         uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Create release archives including submodules
+      - name: Create source directory including submodules
         run: |
-          mkdir release-src
+          mkdir source
+          rsync -a --exclude='.git' ./ source/
 
-          # Copy main repo + submodules
-          git ls-files --recurse-submodules -z | xargs -0 tar -czf source-${{ github.ref_name }}.tar.gz
-          git ls-files --recurse-submodules -z | xargs -0 zip source-${{ github.ref_name }}.zip
+      - name: Create max-compression archives
+        run: |
+          # TAR.GZ (max compression)
+          tar -czvf source-${{ github.ref_name }}.tar.gz -C source . --options gzip:9
+
+          # ZIP (max compression)
+          cd source
+          zip -9 -r ../source-${{ github.ref_name }}.zip .
+          cd ..
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -33,7 +39,7 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
           body: |
-            Auto-generated release for `${{ github.ref_name }}` including submodules.
+            Auto-generated release with full submodule contents and max-level compression.
           files: |
             source-${{ github.ref_name }}.tar.gz
             source-${{ github.ref_name }}.zip
