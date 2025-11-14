@@ -12,10 +12,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: dependency install 
-        uses: ConorMacBride/install-package@v1
-        with: 
-          apt: rsync
       - name: Checkout repo with submodules
         uses: actions/checkout@v4
         with:
@@ -25,7 +21,7 @@ jobs:
       - name: Create source directory including submodules
         run: |
           mkdir source
-          rsync -a --exclude='.git' ./ source/
+          tar -cf - --exclude='.git' . | tar -xf - -C source
 
       - name: Create max-compression archives
         run: |
