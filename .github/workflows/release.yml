@@ -12,6 +12,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: dependency install 
+        uses: ConorMacBride/install-package@v1
+        with: 
+          apt: rsync
       - name: Checkout repo with submodules
         uses: actions/checkout@v4
         with:
